@@ -55,3 +55,32 @@ agents.
   examples of idiomatic usage, tests, module structure, and API design.
 - When writing relay infrastructure code with Alchemy, inspect `.repos/alchemy-effect/` for examples of
   idiomatic usage, tests, module structure, and API design.
+
+## Git Fork & Upstream Syncing Strategy
+
+This repository is a customized fork of `https://github.com/pingdotgg/t3code`. To ensure easy upstream updates while keeping custom UI changes intact, agents must adhere to the following rules:
+
+### Branch Roles
+- **`main`**: Acts as a pristine, untouched mirror of the upstream stable release tags. **NEVER make commits or changes on the `main` branch.** It must always be configured with `--ff-only`.
+- **`custom-ui`**: The active branch where local UI modifications are developed. **ALL customizations must reside here.**
+
+### Upstream Update Process (For reference & syncing)
+When syncing new stable releases from `upstream`:
+1. Update `main` to track the new stable tag (e.g. `v0.0.29`):
+   ```bash
+   git checkout main
+   git fetch upstream --tags
+   git reset --hard v0.0.29
+   git push --force-with-lease origin main
+   ```
+2. Rebase `custom-ui` onto `main`:
+   ```bash
+   git checkout custom-ui
+   git rebase main
+   git push --force-with-lease origin custom-ui
+   ```
+
+### Architecture for UI Changes
+- Keep local changes as isolated and modular as possible.
+- Prefer adding custom UI code under dedicated folders or subcomponents, importing/injecting them with minimal hooks in existing files to minimize rebase conflicts.
+
