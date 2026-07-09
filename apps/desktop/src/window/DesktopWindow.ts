@@ -169,7 +169,12 @@ function syncWindowAppearance(
       return;
     }
 
-    window.setBackgroundColor(getInitialWindowBackgroundColor(shouldUseDarkColors));
+    // Re-applying the OS material on theme change: macOS stays on the
+    // transparent sentinel so the vibrancy layer keeps showing through; other
+    // platforms fall back to the solid chrome color.
+    window.setBackgroundColor(
+      platform === "darwin" ? "#00000000" : getInitialWindowBackgroundColor(shouldUseDarkColors),
+    );
     const { titleBarOverlay } = getWindowTitleBarOptions(shouldUseDarkColors, platform);
     if (typeof titleBarOverlay === "object") {
       window.setTitleBarOverlay(titleBarOverlay);
@@ -250,6 +255,7 @@ export const make = Effect.gen(function* () {
     const iconPaths = yield* assets.iconPaths;
     const iconOption = getIconOption(iconPaths, environment.platform);
     const shouldUseDarkColors = yield* electronTheme.shouldUseDarkColors;
+    const isMacos = environment.platform === "darwin";
     const window = yield* electronWindow.create({
       width: 1100,
       height: 780,
@@ -257,8 +263,19 @@ export const make = Effect.gen(function* () {
       minHeight: 620,
       show: false,
       autoHideMenuBar: true,
-      ...(environment.platform === "darwin" ? { disableAutoHideCursor: true } : {}),
-      backgroundColor: getInitialWindowBackgroundColor(shouldUseDarkColors),
+      ...(isMacos ? { disableAutoHideCursor: true } : {}),
+      // On macOS, opt into the system sidebar material so the Electron window
+      // itself is translucent and the web's `backdrop-blur` on the chat
+      // sidebar finally has something behind it to blur. The sentinel
+      // `backgroundColor` is what shows where the web content is transparent;
+      // the main content area paints its own solid background via
+      // AppSidebarLayout, so the user only sees the OS material in the
+      // sidebar column.
+      transparent: isMacos,
+      ...(isMacos ? { vibrancy: "sidebar" as const } : {}),
+      backgroundColor: isMacos
+        ? "#00000000"
+        : getInitialWindowBackgroundColor(shouldUseDarkColors),
       ...iconOption,
       title: environment.displayName,
       ...getWindowTitleBarOptions(shouldUseDarkColors, environment.platform),

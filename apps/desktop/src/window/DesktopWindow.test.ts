@@ -241,6 +241,8 @@ const makeSplashScenario = (createOutcomes: readonly (Electron.BrowserWindow | n
                 frame: null,
                 transparent: null,
                 backgroundColor: null,
+                vibrancy: null,
+                backgroundMaterial: null,
                 webPreferences: {
                   preload: null,
                   partition: null,
@@ -336,6 +338,9 @@ describe("DesktopWindow", () => {
         yield* desktopWindow.handleBackendReady(new URL("http://127.0.0.1:3773"));
         assert.equal(yield* Ref.get(createCount), 1);
         assert.isTrue(createdWindowOptions[0]?.disableAutoHideCursor);
+        assert.isTrue(createdWindowOptions[0]?.transparent);
+        assert.equal(createdWindowOptions[0]?.vibrancy, "sidebar");
+        assert.equal(createdWindowOptions[0]?.backgroundColor, "#00000000");
         assert.deepEqual(fakeWindow.setAutoHideCursor.mock.calls, [[false]]);
         assert.deepEqual(fakeWindow.loadURL.mock.calls[0], ["t3code-dev://app/"]);
         assert.equal(fakeWindow.openDevTools.mock.calls.length, 1);

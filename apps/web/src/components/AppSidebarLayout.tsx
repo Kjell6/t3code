@@ -121,7 +121,9 @@ export function AppSidebarLayout({ children }: { children: ReactNode }) {
         <ThreadSidebar />
         <SidebarRail />
       </Sidebar>
-      {children}
+      <main className="relative flex min-w-0 flex-1 flex-col bg-background">
+        {children}
+      </main>
       <SidebarControl />
     </SidebarProvider>
   );
