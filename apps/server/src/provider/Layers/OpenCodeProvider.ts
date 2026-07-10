@@ -456,8 +456,13 @@ export const checkOpenCodeProviderStatus = Effect.fn("checkOpenCodeProviderStatu
   // native skill discovery.
   const [skills, slashCommands] = yield* Effect.all(
     [
-      discoverLocalSkills(["~/.config/opencode/skill", "~/.opencode/skill"]),
-      discoverLocalSlashCommands(["~/.config/opencode/command"]),
+      discoverLocalSkills([
+        "~/.config/opencode/skills",
+        "~/.opencode/skills",
+        "~/.agents/skills",
+        `${cwd}/.opencode/skills`,
+      ]),
+      discoverLocalSlashCommands(["~/.config/opencode/commands", `${cwd}/.opencode/commands`]),
     ],
     { concurrency: "unbounded" },
   );
