@@ -266,6 +266,14 @@ html[data-mobile-composer-route-transition="true"]::view-transition-old(t3-mobil
     @apply flex h-10 min-h-10 shrink-0 items-center border-b border-border/60 bg-background;
   }
 
+  [data-right-panel="true"] .surface-subheader {
+    background-color: var(--color-neutral-100);
+  }
+
+  .dark [data-right-panel="true"] .surface-subheader {
+    background-color: var(--color-neutral-800);
+  }
+
   .chat-composer-horizontal-inset {
     padding-inline-start: calc(env(safe-area-inset-left) + 0.75rem);
     padding-inline-end: calc(env(safe-area-inset-right) + 0.75rem);

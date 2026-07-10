@@ -47,7 +47,7 @@ export function PreviewEmptyState({
           <RadioTower className="size-4 shrink-0" />
           <h2 className="font-medium">Local servers</h2>
         </div>
-        <div className="flex flex-col divide-y divide-border/60 overflow-hidden rounded-xl border border-border/70 bg-background">
+        <div className="flex flex-col divide-y divide-border/60 overflow-hidden rounded-xl border border-border/70 bg-neutral-100 dark:bg-neutral-800">
           {servers.map((server) => (
             <PreviewLocalServerCard
               key={`${server.host}:${server.port}`}

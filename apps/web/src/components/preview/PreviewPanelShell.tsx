@@ -42,7 +42,7 @@ export function PreviewPanelShell(props: {
   return (
     <div
       className={cn(
-        "relative flex h-full min-h-0 min-w-0 flex-col self-stretch bg-background",
+        "relative flex h-full min-h-0 min-w-0 flex-col self-stretch bg-neutral-100 dark:bg-neutral-800",
         isInline
           ? props.maximized
             ? "flex-1 border-l border-border"
@@ -52,6 +52,7 @@ export function PreviewPanelShell(props: {
       style={isInline && !props.maximized ? { width: `${width}px` } : undefined}
       data-preview-panel-mode={props.mode}
       data-preview-panel-maximized={props.maximized ? "true" : "false"}
+      data-right-panel={isInline ? "true" : undefined}
     >
       {isInline && !props.maximized ? <RightPanelResizeHandle handlers={handlers} /> : null}
       {useDragRegion ? <div className="electron-drag-region h-0 w-full" aria-hidden /> : null}

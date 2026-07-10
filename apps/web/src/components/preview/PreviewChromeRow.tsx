@@ -159,7 +159,7 @@ export function PreviewChromeRow({
           </Tooltip>
         </div>
 
-        <InputGroup className="group/address h-7 flex-1 rounded-md border-transparent bg-transparent shadow-none before:shadow-none hover:bg-muted/40 focus-within:bg-background">
+        <InputGroup className="group/address h-7 flex-1 rounded-md border-transparent bg-neutral-50 shadow-none before:shadow-none hover:bg-neutral-100 focus-within:bg-background dark:bg-neutral-700 dark:hover:bg-neutral-600 dark:focus-within:bg-background">
           <Tooltip>
             <TooltipTrigger
               render={
