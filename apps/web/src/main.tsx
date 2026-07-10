@@ -27,7 +27,6 @@ const router = getRouter(history);
 
 if (isElectron) {
   syncDocumentElectronPlatformClasses(navigator.platform);
-  document.documentElement.classList.add("is-electron");
   syncDocumentWindowControlsOverlayClass();
 }
 

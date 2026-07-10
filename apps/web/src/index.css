@@ -219,15 +219,6 @@ html[data-mobile-composer-route-transition="true"]::view-transition-old(t3-mobil
     background-attachment: fixed;
     background-repeat: no-repeat;
   }
-  /* In Electron (with `vibrancy: 'sidebar'` on the BrowserWindow), drop the
-     solid html/body background so the OS sidebar material + the body's radial
-     gradients actually show through the translucent chat sidebar. The main
-     content column paints its own solid background in AppSidebarLayout so the
-     chat composer / messages still sit on a proper surface. */
-  html.is-electron,
-  .is-electron body {
-    background-color: transparent;
-  }
 }
 
 @layer components {
@@ -438,16 +429,8 @@ html[data-mobile-composer-route-transition="true"]::view-transition-old(t3-mobil
 
 body {
   font-family:
-    -apple-system,
-    BlinkMacSystemFont,
-    "SF Pro Text",
-    "SF Pro Display",
-    system-ui,
-    "Segoe UI",
-    Roboto,
-    "Helvetica Neue",
-    Arial,
-    sans-serif;
+    -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", system-ui, "Segoe UI",
+    Roboto, "Helvetica Neue", Arial, sans-serif;
   margin: 0;
   padding: 0;
 }
