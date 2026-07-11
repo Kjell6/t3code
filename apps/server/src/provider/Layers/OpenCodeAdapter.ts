@@ -52,6 +52,18 @@ import {
 import * as Option from "effect/Option";
 
 const PROVIDER = ProviderDriverKind.make("opencode");
+const OPENCODE_RESUME_VERSION = 1;
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function parseOpenCodeResume(raw: unknown): { readonly sessionId: string } | undefined {
+  if (!isRecord(raw)) return undefined;
+  if (raw.schemaVersion !== OPENCODE_RESUME_VERSION) return undefined;
+  if (typeof raw.sessionId !== "string" || !raw.sessionId.trim()) return undefined;
+  return { sessionId: raw.sessionId.trim() };
+}
 
 interface OpenCodeTurnSnapshot {
   readonly id: TurnId;
@@ -1034,6 +1046,8 @@ export function makeOpenCodeAdapter(
           sessions.delete(input.threadId);
         }
 
+        const resumeCursor = parseOpenCodeResume(input.resumeCursor);
+
         const started = yield* Effect.gen(function* () {
           const sessionScope = yield* Scope.make();
           const startedExit = yield* Effect.exit(
@@ -1067,6 +1081,26 @@ export function makeOpenCodeAdapter(
                   }),
                 );
               }
+
+              if (resumeCursor) {
+                const resumedSession = yield* runOpenCodeSdk("session.get", () =>
+                  client.session.get({ sessionID: resumeCursor.sessionId }),
+                );
+                if (!resumedSession.data) {
+                  return yield* new OpenCodeRuntimeError({
+                    operation: "session.get",
+                    detail: `OpenCode session '${resumeCursor.sessionId}' from resume cursor returned no session payload.`,
+                  });
+                }
+                return {
+                  sessionScope,
+                  server,
+                  client,
+                  openCodeSession: resumedSession.data,
+                  createdRemoteSession: false,
+                };
+              }
+
               const openCodeSession = yield* runOpenCodeSdk("session.create", () =>
                 client.session.create({
                   title: `T3 Code ${input.threadId}`,
@@ -1084,6 +1118,7 @@ export function makeOpenCodeAdapter(
                 server,
                 client,
                 openCodeSession: openCodeSession.data,
+                createdRemoteSession: true,
               };
             }).pipe(Effect.provideService(Scope.Scope, sessionScope)),
           );
@@ -1098,13 +1133,16 @@ export function makeOpenCodeAdapter(
         // and already inserted a session while we were awaiting async work.
         const raceWinner = sessions.get(input.threadId);
         if (raceWinner) {
-          // Another call won the race – clean up the session we just created
-          // (including the remote SDK session) and return the existing one.
-          yield* runOpenCodeSdk("session.abort", () =>
-            started.client.session.abort({
-              sessionID: started.openCodeSession.id,
-            }),
-          ).pipe(Effect.ignore);
+          // Another call won the race. If we created a fresh remote session,
+          // abort it so it does not leak. If we only resumed an existing
+          // session, leave it alone and just tear down our local scope.
+          if (started.createdRemoteSession) {
+            yield* runOpenCodeSdk("session.abort", () =>
+              started.client.session.abort({
+                sessionID: started.openCodeSession.id,
+              }),
+            ).pipe(Effect.ignore);
+          }
           yield* Scope.close(started.sessionScope, Exit.void).pipe(Effect.ignore);
           return raceWinner.session;
         }
@@ -1118,6 +1156,10 @@ export function makeOpenCodeAdapter(
           cwd: directory,
           ...(input.modelSelection ? { model: input.modelSelection.model } : {}),
           threadId: input.threadId,
+          resumeCursor: {
+            schemaVersion: OPENCODE_RESUME_VERSION,
+            sessionId: started.openCodeSession.id,
+          },
           createdAt,
           updatedAt: createdAt,
         };
@@ -1283,6 +1325,7 @@ export function makeOpenCodeAdapter(
       return {
         threadId: input.threadId,
         turnId,
+        resumeCursor: context.session.resumeCursor,
       };
     });
 
