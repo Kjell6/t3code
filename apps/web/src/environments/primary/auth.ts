@@ -307,13 +307,7 @@ function waitForBootstrapRetry(delayMs: number): Promise<void> {
 
 function isTransientBootstrapError(error: unknown): boolean {
   if (isPrimaryEnvironmentRequestError(error)) {
-    if (TRANSIENT_BOOTSTRAP_STATUS_CODES.has(error.status)) {
-      return true;
-    }
-    if (error.cause instanceof TypeError) {
-      return true;
-    }
-    return false;
+    return TRANSIENT_BOOTSTRAP_STATUS_CODES.has(error.status);
   }
 
   if (error instanceof TypeError) {
