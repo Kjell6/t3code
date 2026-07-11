@@ -1236,7 +1236,7 @@ function AssistantChangedFilesSectionInner({
   onOpenTurnDiff: (turnId: TurnId, filePath?: string) => void;
 }) {
   const allDirectoriesExpanded = useUiStateStore(
-    (store) => store.threadChangedFilesExpandedById[routeThreadKey]?.[turnSummary.turnId] ?? true,
+    (store) => store.threadChangedFilesExpandedById[routeThreadKey]?.[turnSummary.turnId] ?? false,
   );
   const setExpanded = useUiStateStore((store) => store.setThreadChangedFilesExpanded);
   const summaryStat = summarizeTurnDiffStats(checkpointFiles);
