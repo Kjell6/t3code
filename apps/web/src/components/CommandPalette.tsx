@@ -110,6 +110,7 @@ import { resolveEnvironmentOptionLabel } from "./BranchToolbar.logic";
 import { CommandPaletteResults } from "./CommandPaletteResults";
 import { AzureDevOpsIcon, BitbucketIcon, GitHubIcon, GitLabIcon } from "./Icons";
 import { ProjectFavicon } from "./ProjectFavicon";
+import { isNoProjectProject } from "./Sidebar.logic";
 import { ThreadRowLeadingStatus, ThreadRowTrailingStatus } from "./ThreadStatusIndicators";
 import { primaryServerKeybindingsAtom } from "../state/server";
 import { resolveShortcutCommand } from "../keybindings";
@@ -127,6 +128,7 @@ import { stackedThreadToast, toastManager } from "./ui/toast";
 import { Tooltip, TooltipPopup, TooltipTrigger } from "./ui/tooltip";
 import { ComposerHandleContext, useComposerHandleContext } from "../composerHandleContext";
 import type { ChatComposerHandle } from "./chat/ChatComposer";
+import type { Project } from "../types";
 
 const EMPTY_BROWSE_ENTRIES: FilesystemBrowseResult["entries"] = [];
 
@@ -446,6 +448,33 @@ function CommandPaletteDialog(props: {
   );
 }
 
+function CommandPaletteProjectIcon({
+  project,
+  className,
+}: {
+  readonly project: {
+    readonly title: string;
+    readonly environmentId: EnvironmentId;
+    readonly workspaceRoot: string;
+  };
+  readonly className?: string;
+}) {
+  if (isNoProjectProject(project)) {
+    return null;
+  }
+  return (
+    <ProjectFavicon
+      environmentId={project.environmentId}
+      cwd={project.workspaceRoot}
+      className={className}
+    />
+  );
+}
+
+function renderProjectIcon(project: Project) {
+  return <CommandPaletteProjectIcon project={project} className={ITEM_ICON_CLASS} />;
+}
+
 function OpenCommandPaletteDialog(props: {
   readonly openIntent: CommandPaletteOpenIntent | null;
   readonly setOpen: (open: boolean) => void;
@@ -655,13 +684,7 @@ function OpenCommandPaletteDialog(props: {
       buildProjectActionItems({
         projects,
         valuePrefix: "project",
-        icon: (project) => (
-          <ProjectFavicon
-            environmentId={project.environmentId}
-            cwd={project.workspaceRoot}
-            className={ITEM_ICON_CLASS}
-          />
-        ),
+        icon: renderProjectIcon,
         runProject: openProjectFromSearch,
       }),
     [openProjectFromSearch, projects],
@@ -673,13 +696,7 @@ function OpenCommandPaletteDialog(props: {
         projects,
         valuePrefix: "new-thread-in",
         shortcutCommand: "chat.new",
-        icon: (project) => (
-          <ProjectFavicon
-            environmentId={project.environmentId}
-            cwd={project.workspaceRoot}
-            className={ITEM_ICON_CLASS}
-          />
-        ),
+        icon: renderProjectIcon,
         runProject: async (project) => {
           await startNewThreadInProjectFromContext(
             {

@@ -9,7 +9,9 @@ import {
   getProjectSortTimestamp,
   hasUnseenCompletion,
   isContextMenuPointerDown,
+  isNoProjectProject,
   isTrailingDoubleClick,
+  NO_PROJECT_TITLE,
   orderItemsByPreferredIds,
   resolveProjectStatusIndicator,
   resolveSidebarNewThreadSeedContext,
@@ -1065,6 +1067,48 @@ describe("sortProjectsForSidebar", () => {
     );
 
     expect(timestamp).toBe(Date.parse("2026-03-09T10:10:00.000Z"));
+  });
+
+  it("pins the no-project project to the bottom for non-manual sort orders", () => {
+    const projects = [
+      makeProject({
+        id: ProjectId.make("project-no-project"),
+        title: NO_PROJECT_TITLE,
+        updatedAt: "2026-03-09T10:10:00.000Z",
+      }),
+      makeProject({
+        id: ProjectId.make("project-regular"),
+        title: "Regular project",
+        updatedAt: "2026-03-09T10:05:00.000Z",
+      }),
+    ];
+
+    const sorted = sortProjectsForSidebar(projects, [], "updated_at", isNoProjectProject);
+
+    expect(sorted.map((project) => project.id)).toEqual([
+      ProjectId.make("project-regular"),
+      ProjectId.make("project-no-project"),
+    ]);
+  });
+
+  it("does not pin the no-project project for manual sort order", () => {
+    const projects = [
+      makeProject({
+        id: ProjectId.make("project-no-project"),
+        title: NO_PROJECT_TITLE,
+      }),
+      makeProject({
+        id: ProjectId.make("project-regular"),
+        title: "Regular project",
+      }),
+    ];
+
+    const sorted = sortProjectsForSidebar(projects, [], "manual", isNoProjectProject);
+
+    expect(sorted.map((project) => project.id)).toEqual([
+      ProjectId.make("project-no-project"),
+      ProjectId.make("project-regular"),
+    ]);
   });
 });
 

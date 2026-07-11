@@ -199,6 +199,7 @@ import {
   sortProjectsForSidebar,
   useThreadJumpHintVisibility,
   ThreadStatusPill,
+  isNoProjectProject,
 } from "./Sidebar.logic";
 import { sortThreads } from "../lib/threadSort";
 import { SidebarUpdatePill } from "./sidebar/SidebarUpdatePill";
@@ -2243,7 +2244,9 @@ const SidebarProjectItem = memo(function SidebarProjectItem(props: SidebarProjec
               }`}
             />
           )}
-          <ProjectFavicon environmentId={project.environmentId} cwd={project.workspaceRoot} />
+          {!isNoProjectProject(project) && (
+            <ProjectFavicon environmentId={project.environmentId} cwd={project.workspaceRoot} />
+          )}
           <span className="flex min-w-0 flex-1 items-center gap-2">
             <span className="truncate text-xs font-medium text-foreground/90">
               {project.displayName}
@@ -3391,6 +3394,7 @@ export default function Sidebar() {
       sortableProjects,
       sortableThreads,
       sidebarProjectSortOrder,
+      (project) => isNoProjectProject(project),
     ).flatMap((project) => {
       const resolvedProject = sidebarProjectByKey.get(project.id);
       return resolvedProject ? [resolvedProject] : [];

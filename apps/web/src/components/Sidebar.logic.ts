@@ -34,6 +34,12 @@ type ScopedSidebarThread = ThreadSortInput & {
   archivedAt: string | null;
 };
 
+export const NO_PROJECT_TITLE = "Ohne Projekt";
+
+export function isNoProjectProject(project: { title: string }): boolean {
+  return project.title === NO_PROJECT_TITLE;
+}
+
 export type ThreadTraversalDirection = "previous" | "next";
 
 export interface ThreadStatusPill {
@@ -549,12 +555,19 @@ function sortProjectsByActivity<TProject extends SidebarProject>(
   sortOrder: SidebarProjectSortOrder,
   getProjectThreads: (project: TProject) => readonly ThreadSortInput[],
   compareTies: (left: TProject, right: TProject) => number,
+  pinToBottom?: (project: TProject) => boolean,
 ): TProject[] {
   if (sortOrder === "manual") {
     return [...projects];
   }
 
   return [...projects].toSorted((left, right) => {
+    const leftPinned = pinToBottom?.(left) ?? false;
+    const rightPinned = pinToBottom?.(right) ?? false;
+    if (leftPinned !== rightPinned) {
+      return leftPinned ? 1 : -1;
+    }
+
     const rightTimestamp = getProjectSortTimestamp(right, getProjectThreads(right), sortOrder);
     const leftTimestamp = getProjectSortTimestamp(left, getProjectThreads(left), sortOrder);
     const byTimestamp =
@@ -570,6 +583,7 @@ export function sortProjectsForSidebar<
   projects: readonly TProject[],
   threads: readonly TThread[],
   sortOrder: SidebarProjectSortOrder,
+  pinToBottom?: (project: TProject) => boolean,
 ): TProject[] {
   const threadsByProjectId = new Map<string, TThread[]>();
   for (const thread of threads) {
@@ -583,6 +597,7 @@ export function sortProjectsForSidebar<
     sortOrder,
     (project) => threadsByProjectId.get(project.id) ?? [],
     (left, right) => left.title.localeCompare(right.title) || left.id.localeCompare(right.id),
+    pinToBottom,
   );
 }
 
@@ -598,6 +613,7 @@ export function sortScopedProjectsForSidebar<
   projects: readonly TProject[],
   threads: readonly TThread[],
   sortOrder: SidebarProjectSortOrder,
+  pinToBottom?: (project: TProject) => boolean,
 ): TProject[] {
   const scopedKey = (environmentId: string, projectId: string) =>
     `${environmentId}\u0000${projectId}`;
@@ -620,5 +636,6 @@ export function sortScopedProjectsForSidebar<
       left.title.localeCompare(right.title) ||
       left.environmentId.localeCompare(right.environmentId) ||
       left.id.localeCompare(right.id),
+    pinToBottom,
   );
 }
